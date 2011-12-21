@@ -1,7 +1,4 @@
 builder
 sinatra
 nokogiri
-iconv
-erb
-date
 
