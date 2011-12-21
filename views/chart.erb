@@ -1,0 +1,65 @@
+<section id="main" class="column">
+<h4 class="alert_info">图表使用说明:可以在图表上拉框放大数据,双击图表即可恢复.</h4>
+<div style="position:absolute;z-index:99;display:none;" align="center" id="tooltip1b"></div>
+<div id="mybooktrend" style="height:300px; width:100%;"></div>
+<script class="code" type="text/javascript">
+  $(document).ready(function(){
+      $.cookie('my_books',<%= hash_books %>,{path:'/'})
+	var line1= <%= hash_books %>;
+  var plot1 = $.jqplot('mybooktrend', [line1], {
+			animate: true,
+			animateReplot: true,
+      title:'<h4><%= username %></h4>',
+      axes:{
+        xaxis:{
+          renderer:$.jqplot.DateAxisRenderer,
+          tickOptions:{
+            formatString:'%y年%m月%#d日'
+          } 
+        },
+        yaxis:{
+          tickOptions:{
+            formatString:'%0.0f'
+            }
+        },
+      },
+      highlighter: {
+        show: true,
+        sizeAdjust: 7.5,
+				formatString:'<span style="color:red;">你在%s借了%s本书:</span>'
+      },
+      cursor: {
+				show: true,
+				zoom: true,
+      }
+  });
+
+$('#mybooktrend').bind('jqplotDataMouseOver', 
+    function (ev, seriesIndex, pointIndex, data) {
+      var chart_left = $('#mybooktrend').offset().left,
+        chart_top = $('#mybooktrend').offset().top,
+        x = plot1.axes.xaxis.u2p(data[0]),  // convert x axis unita to pixels
+        y = plot1.axes.yaxis.u2p(data[1]);  // convert y axis units to pixels
+			var html = '<span style="color:blue;">';
+			for(var i=0;i<data[1];i++){
+				html +=line1[pointIndex][2][i];
+				html +='</br>';
+			}
+			html += '</span>';
+      $('#tooltip1b').css({left:chart_left+x-160, top:chart_top+y+10});
+      $('#tooltip1b').html(html);
+      $('#tooltip1b').show();
+		});
+	$('#mybooktrend').bind('jqplotDataUnhighlight', 
+      function (ev, seriesIndex, pointIndex, data) {
+          $('#tooltip1b').empty();
+          $('#tooltip1b').hide();
+   		});
+});
+</script>
+<script class="include" type="text/javascript" src="js/jquery.jqplot.min.js"></script>
+<script class="include" language="javascript" type="text/javascript" src="js/plugins/jqplot.highlighter.min.js"></script>
+<script class="include" language="javascript" type="text/javascript" src="js/plugins/jqplot.cursor.min.js"></script>
+<script class="include" language="javascript" type="text/javascript" src="js/plugins/jqplot.dateAxisRenderer.min.js"></script>
+
+</section>
