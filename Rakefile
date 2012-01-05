@@ -26,7 +26,7 @@ end
   
 desc "database migration"
 task :db_migrate do
-  DataMapper.setup(:default, 'sqlite:db/data.db')
+  DataMapper.setup(:default, ENV['DATABASE_URL'] || 'sqlite:db/data.db')
   DataMapper.finalize
   DataMapper.auto_migrate!
   init_db
