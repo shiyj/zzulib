@@ -8,7 +8,7 @@ require 'date'
 require 'data_mapper'
 require './lib/db'
 
-DataMapper.setup(:default, 'sqlite:db/data.db')
+DataMapper.setup(:default, ENV['DATABASE_URL'] || 'sqlite:db/data.db')
 DataMapper.finalize
 DataMapper.auto_upgrade!
 
