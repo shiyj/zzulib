@@ -1,7 +1,13 @@
-<div id="my_cookie"></div>
+<section id="main" class="colum">
+<span id="message" style="color:green"></span>
 <script type="text/javascript">
   $(document).ready(function(){
-      var books=$.cookie('my_books');
-      $("#my_cookie").html(books+'aaaaaaaa');
-  })
+      $("#message").text("正在加载");
+      $("#history").attr("src","http://202.197.191.210/cgi-bin/SrchLog?v_cardno=X0812444&v_rdrecno=126381&v_starttime=20070901&v_endtime=20111230&v_maxnum=20")
+      $("#history").load(function(){
+        $("#message").text("加载完毕");
+        })
+      })
 </script>
+<iframe id="history" src="" width="600" height="200"></iframe>
+</section>

@@ -5,71 +5,82 @@ require 'open-uri'
 require 'iconv'
 require 'erb'
 require 'date'
-#require './extend'
+require 'data_mapper'
+require './lib/db'
+
+DataMapper.setup(:default, 'sqlite:db/data.db')
+DataMapper.finalize
+DataMapper.auto_upgrade!
 
 enable :sessions
 
-Dir["lib/*.rb"].each { |x| load x }
-
-HASH_INDEX = {"A"=>"马克思主义、列宁主义、毛泽东思想", "B"=>"哲学", "C"=>"社会科学总论", "D"=>"政治、法律", "E"=>"军事", "F"=>"经济", "G"=>"文化、科学、教育、体育", "H"=>"语言、文字", "I"=>"文学", "J"=>"艺术", "K"=>"历史、地理", "N"=>"自然科学总论", "O"=>"数理科学和化学", "P"=>"天文学、地理科学", "Q"=>"生物科学", "R"=>"医学、卫生", "S"=>"农业科学", "T"=>"工业技术", "U"=>"交通运输", "V"=>"航空、航天", "X"=>"环境科学、劳动保护科学（安全科学）", "Z"=>"综合性图书"}
-
+#Dir["lib/*.rb"].each { |x| load x }
+load './lib/helpers.rb'
 
 helpers do
 	include Helpers
 end
 
 get '/test' do
-	books,username = get_test_data
-	hash_books = change_to_jsdata books
-	erb :chart,:locals=>{ :num=>books.length.to_s,:username=>username, :hash_books=>hash_books }
+	v_cardno = '张三'
+  rdrecno = '000'
+  session.clear
+	erb :chart,:locals=>{ :v_cardno=>v_cardno,:rdrecno=>rdrecno }
 end
-get '/' do
-	erb :index,:layout=>false
+get '/mylib' do
+  v_cardno = session["v_cardno"]
+  rdrecno = session["rdrecno"]
+	erb :chart,:locals=>{ :v_cardno=>v_cardno,:rdrecno=>rdrecno }
 end
 
-get '/chart' do
+get '/getmybooks' do
   if is_login?
-  	books = session["books"]
-	  username = session["username"]
+    erb '<%= get_my_books %>',:layout=>false
   else
-    books,username = get_test_data
+    erb '<%= get_test_data %>',:layout=>false
   end
-	hash_books = change_to_jsdata books
-	erb :chart,:locals=>{ :num=>books.length.to_s,:username=>username, :hash_books=>hash_books }
+end
+
+get '/' do
+	erb :index,:layout=>false
 end
 
 get '/login' do
   username = params[:username]
 	password = params[:password]
-	login username,password
-	if(session["is_login"])
-		"login_success"
-	else
-		"login_faile"
+  if(username=='admin'&&password=='admin')
+    session["is_login"]=false
+    "login_success"
+  else
+  	login username,password
+  	if(session["is_login"])
+	  	"login_success"
+  	else
+	  	"login_faile"
+    end
 	end
 end
 get '/loginout' do
 	session.clear
 end
-get '/main' do
-	text = get_lib_history
-  books,username = get_my_data text
-  erb :chart,:locals=>{ :num=>books.length.to_s,:username=>username }
+
+post '/feedback' do
+  msg = params[:msg]
+  email = params[:email]
+  succ = true
+  tries = 0
+  begin
+    tries +=1
+    mail_to_me msg,email
+  rescue
+    #retry unless tries >=3
+    succ = false
+  end
+  succ ? "send_success":"send_faile"
+end
+get '/kezh' do
+  erb '<%= get_classify_hash %>',:layout=>false
 end
 get '/tt' do
-	books,username = get_test_data
-	erb :test,:locals=>{ :num=>books.length.to_s,:username=>username }
-end
-
-get '/gettest' do
-	text = query_html 'engin','19880115111'
-	books,username = get_my_data text
-	hash_books = change_to_jsdata books
-	erb :chart, :locals=> { :num=>books.length.to_s,:username=>username, :hash_books=>hash_books }
-end
-get '/liu' do
-	text = query_html 'liusir14','liushuai1014'
-	books,username = get_my_data text
-	hash_books = change_to_jsdata books
-	erb :chart, :locals=> { :num=>books.length.to_s,:username=>username, :hash_books=>hash_books }
+  erb '<%= get_rank %>',:layout=>false
 end

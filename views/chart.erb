@@ -1,65 +1,145 @@
 <section id="main" class="column">
-<h4 class="alert_info">图表使用说明:可以在图表上拉框放大数据,双击图表即可恢复.</h4>
-<div style="position:absolute;z-index:99;display:none;" align="center" id="tooltip1b"></div>
-<div id="mybooktrend" style="height:300px; width:100%;"></div>
-<script class="code" type="text/javascript">
-  $(document).ready(function(){
-      $.cookie('my_books',<%= hash_books %>,{path:'/'})
-	var line1= <%= hash_books %>;
-  var plot1 = $.jqplot('mybooktrend', [line1], {
-			animate: true,
-			animateReplot: true,
-      title:'<h4><%= username %></h4>',
-      axes:{
-        xaxis:{
-          renderer:$.jqplot.DateAxisRenderer,
-          tickOptions:{
-            formatString:'%y年%m月%#d日'
-          } 
-        },
-        yaxis:{
-          tickOptions:{
-            formatString:'%0.0f'
-            }
-        },
-      },
-      highlighter: {
-        show: true,
-        sizeAdjust: 7.5,
-				formatString:'<span style="color:red;">你在%s借了%s本书:</span>'
-      },
-      cursor: {
-				show: true,
-				zoom: true,
+<div id="chart" class="show parent">
+  <h4 class="alert_info">图表使用说明:可以在图表上拉框放大数据,双击图表即可恢复.</h4>
+  <div style="position:absolute;z-index:99;display:none;" align="center" id="tooltip1b"></div>
+  <div id="mybooktrend" style="height:300px; width:100%;"></div>
+	<!--[if lt IE 9]>
+  <script class="include" type="text/javascript" src="js/excanvas.js"></script>
+  <![endif]-->
+  <script class="include" type="text/javascript" src="js/jquery.jqplot.min.js"></script>
+  <script class="include" language="javascript" type="text/javascript" src="js/plugins/jqplot.highlighter.min.js"></script>
+  <script class="include" language="javascript" type="text/javascript" src="js/plugins/jqplot.cursor.min.js"></script>
+  <script class="include" language="javascript" type="text/javascript" src="js/plugins/jqplot.dateAxisRenderer.min.js"></script>
+  <script class="include" language="javascript" type="text/javascript" src="js/func/books_analyse.js"></script>
+  <script class="include" language="javascript" type="text/javascript" src="js/func/chart.js"></script>
+  <script class="include" language="javascript" type="text/javascript" src="js/func/classify.js"></script>
+  <script class="include" language="javascript" type="text/javascript" src="js/func/rank.js"></script>
+  <script type="text/javascript">
+    //$(document).ajaxStop($.unblockUI); 
+    $(document).ready(function(){
+      My_Book=[];
+      Username='';
+      v_cardno="<%= v_cardno %>";
+      rdrecno="<%= rdrecno %>";
+      $.blockUI({message:'<img src="/images/loading.gif"></img><h1>正在加载数据,请稍后...</h1>'});
+      $.ajax({
+        type:'GET',
+        url:'/getmybooks',
+        data:{v_cardno: v_cardno,rdrecno: rdrecno},
+        success:function(data){
+          $.unblockUI;
+          $.growlUI('获取数据完成!','已抓取出你的数据.');
+          data=eval(data)
+          My_Book=data[0];
+          Username=data[1];
+          var len=data[2];
+          Book_index=data[3];
+          Rank_data=data[4];
+          $("#user_and_len").html(Username+"(共借"+len+"本书)");
+          chart(change_to_chart_data(My_Book),Username);
+          classify(change_to_cassify_data(My_Book,Book_index),len);
+          toggle_ul();
+          rank();
+          },
+        error:function(){ajax_error()}
+      });
+      $("#feedback_btn").click(function(){ajax_feedback()});
+      function ajax_feedback(){
+        email=$("#feedback_email").val();
+        msg=$("#feedback_msg").val();
+        $.ajax({
+          type:'POST',
+          url:'/feedback',
+          data:{email: email,msg: msg},
+          success:function(data){
+            if(data=="send_faile"){ajax_error();}
+            else if(data=="send_success"){
+              $.unblockUI;
+              $.growlUI('成功','您的反馈已经成功发送');
+              $("#feedback_email").val('');
+              $("#feedback_msg").val('');
+
+            }},
+          error:function(){ajax_error()}
+          });
       }
-  });
-
-$('#mybooktrend').bind('jqplotDataMouseOver', 
-    function (ev, seriesIndex, pointIndex, data) {
-      var chart_left = $('#mybooktrend').offset().left,
-        chart_top = $('#mybooktrend').offset().top,
-        x = plot1.axes.xaxis.u2p(data[0]),  // convert x axis unita to pixels
-        y = plot1.axes.yaxis.u2p(data[1]);  // convert y axis units to pixels
-			var html = '<span style="color:blue;">';
-			for(var i=0;i<data[1];i++){
-				html +=line1[pointIndex][2][i];
-				html +='</br>';
-			}
-			html += '</span>';
-      $('#tooltip1b').css({left:chart_left+x-160, top:chart_top+y+10});
-      $('#tooltip1b').html(html);
-      $('#tooltip1b').show();
-		});
-	$('#mybooktrend').bind('jqplotDataUnhighlight', 
-      function (ev, seriesIndex, pointIndex, data) {
-          $('#tooltip1b').empty();
-          $('#tooltip1b').hide();
-   		});
-});
-</script>
-<script class="include" type="text/javascript" src="js/jquery.jqplot.min.js"></script>
-<script class="include" language="javascript" type="text/javascript" src="js/plugins/jqplot.highlighter.min.js"></script>
-<script class="include" language="javascript" type="text/javascript" src="js/plugins/jqplot.cursor.min.js"></script>
-<script class="include" language="javascript" type="text/javascript" src="js/plugins/jqplot.dateAxisRenderer.min.js"></script>
-
+      function ajax_error(){
+        $.unblockUI;
+        $.blockUI({message:'<h4 class="alert_error">网络状况有问题请稍后重试...</h4>'});
+        setTimeout($.unblockUI, 3000); 
+      }
+    });
+  </script>
+</div>
+<div class="parent">
+  <h4 class="alert_info" id="classify_alert">测试</h4>
+  <article class="module width_full" id="classify">
+  </article>
+</div>
+<div class="parent">
+  <h4 class="alert_info" id="rank_alert">测试</h4>
+  <article class="module width_full" id="rank">
+		<header><h3 class="tabs_involved">阅读排行榜</h3>
+			<table class="tablesorter" cellspacing="0"> 
+			<thead> 
+				<tr><th>姓名</th><th>借书数</th></tr> 
+			</thead> 
+			<tbody id="rank_container"> 
+			</tbody> 
+			</table>
+  </article>
+</div>
+<div id="feedback" class="parent">
+  <h4 class="alert_info">对本网站有什么意见和建议可以通过下边的模块,将信息发送给我.
+    你也可以直接给我发邮件:shiyj.cn@gmail.com<br>
+    或者你也可以在 <a href=http://about.me/shiyj target="_blank">http://about.me/shiyj</a> 中找到我的微博及博客信息等.
+  </h4>
+  <article class="module width_full">
+			<header><h3>反馈和意见</h3></header>
+			<div class="module_content">
+				<fieldset>
+						<label>您的邮箱</label>
+						<input type="email" id="feedback_email">
+				</fieldset>
+				<fieldset>
+						<label>意见内容</label>
+						<textarea rows="12" id="feedback_msg"></textarea>
+				</fieldset><div class="clear"></div>
+			</div>
+			<footer>
+				<div class="submit_link">
+					<input id="feedback_btn" type="button" value="发送" class="alt_btn" >
+				</div>
+      </footer>
+	</article><!-- end of post new article -->
+</div>
+<div id="about" class="parent">
+  <h4 class="alert_info" >本网站为开源软件,你可以自由使用.网站源代码地址:
+        <a href="https://github.com/shiyj/zzulib" target="_blank">网站源代码</a>
+  </h4>
+  <article class="module width_full">
+				<div class="module_content">
+				<fieldset>
+          <h1>关于图书馆</h1>
+          <p>走到大四,图书馆是我大学里最好的老师.</p>
+          <p>然而遗憾随之而来:</p>
+          <p>如果我花更多时间去阅读...</p>
+          <p>如果我还有时间我要读更多种类的书,而不只是专业书籍...</p>
+          <p>如果...</p>
+          <p>...</p>
+          <p>真的希望我们能充分的利用图书馆...</p>
+				</fieldset>
+				<fieldset>
+            <h1>关于作者:</h1>
+            <p>史英建,郑州大学水利与环境学院08级地理信息系统一班</p>
+            <p>email: shiyj.cn@gmail.com</p>
+            <p>我的博客:<a target="_blank" href="http://shiyj.heroku.com">http://shiyj.heroku.com</a></p>
+            <p>腾讯微博:<a target="_blank" href="http://t.qq.com/giszzu">http://t.qq.com/giszzu</a></p>
+            <p>About Me:<a target="_blank" href="http://about.me/shiyj">http://about.me/shiyj</a></p>
+				</fieldset>
+        </div>
+  </article>
+</div>
+<div id="loginout" class="parent">bbbbbbbbb
+</div>
 </section>

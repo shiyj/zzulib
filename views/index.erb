@@ -14,7 +14,6 @@
   <div id="logo_img" style="position:absolute;z-index:99;width:100%;"align="center">
     <img src="favicon.ico"></img>
   </div>
-  <div style="position:absolute;z-index:99;display:none;" align="center" id="loader"></div>
   <div class="container">
     <div class="center">
       <div id="left" class="middle">
@@ -24,12 +23,13 @@
         </p>
 				<form id="loginForm" action="/login" method="get">
 				<ul><li>
-					<label>用户名:</label>
+					用户名:
 		      <input type="text" name="username"/></br></li><li>
-					<label>密码:</label>
+					密码:
 		    	<input type="password" name="password"/></br></li><li>
           <input type="submit" value="登录"/></li><li>
-            <div style="display:none;" align="center" id="err_info"></div>
+          <p>你可以用使用用户名:admin,密码admin来测试网站内容</p>
+          <div style="display:none;" align="center" id="err_info"></div>
           </li>
 				</ul>
 				</form>
@@ -59,11 +59,9 @@
               $("#err_info").show();
             }
             else if(data=='login_success'){
-            $("#loader >img").attr("src","images/loader.gif");
-            $("#loader").show(); 
-             window.location.href="/main" 
-             }
-             else{
+              window.location.href="/mylib" 
+            }
+            else{
               alert("服务器或者网络问题,请稍后重试");
             }
         });
