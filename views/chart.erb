@@ -24,7 +24,6 @@
       $.blockUI({message:'<img src="/images/loading.gif"></img><h1>正在加载数据,请稍后...</h1>'});
       $.ajax({
         type:'GET',
-				timeout:3000,
         url:'/getmybooks',
         data:{v_cardno: v_cardno,rdrecno: rdrecno},
         success:function(data){

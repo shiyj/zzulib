@@ -29,10 +29,10 @@ module Helpers
   end
 
 	def get_lib_history
-		grade=session["v_cardno"][1..2]
+    #st=session["v_cardno"][1..2]
 		time=DateTime.now
 		endtime=time.to_s[0..9].gsub('-','')
-		url="http://202.197.191.210/cgi-bin/SrchLog?v_cardno=#{session["v_cardno"]}&v_rdrecno=#{session["rdrecno"]}&v_starttime=20#{grade}0901&v_endtime=#{endtime}&v_maxnum=2000"
+		url="http://202.197.191.210/cgi-bin/SrchLog?v_cardno=#{session["v_cardno"]}&v_rdrecno=#{session["rdrecno"]}&v_starttime=20080901&v_endtime=#{endtime}&v_maxnum=2000"
 		get_html url
 	end
 
