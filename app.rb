@@ -17,6 +17,10 @@ enable :sessions
 #Dir["lib/*.rb"].each { |x| load x }
 load './lib/helpers.rb'
 
+before do
+  heades "X-Frame-Options" => "SAMEORIGIN"
+end
+
 helpers do
 	include Helpers
 end
