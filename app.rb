@@ -18,7 +18,7 @@ enable :sessions
 load './lib/helpers.rb'
 
 before do
-  heades "X-Frame-Options" => "SAMEORIGIN"
+  headers "X-Frame-Options" => "SAMEORIGIN"
 end
 
 helpers do
