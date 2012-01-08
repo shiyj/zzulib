@@ -1,0 +1,7 @@
+--- 
+:email_address: zzulib@163.com
+:port: 25
+:helo_dome: 163.com
+:service: smtp.163.com
+:pwd: zzdx08gis
+:authtype: :login
