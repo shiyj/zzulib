@@ -4,7 +4,7 @@ require 'nokogiri'
 require 'open-uri'
 require 'iconv'
 require 'erb'
-require 'date'
+require 'time'
 require 'data_mapper'
 require './lib/db'
 
@@ -19,12 +19,24 @@ load './lib/helpers.rb'
 
 before do
   headers "X-Frame-Options" => "SAMEORIGIN"
+  clear_cache_thread = Thread.new do
+    while true do
+      settings.server_cache.each do |k,v|
+        if (v[:start_time] - Time.now >= 3600)
+          settings.server_cache.delete(k)
+        end
+      end
+      sleep(300)
+    end
+  end
 end
 
 helpers do
 	include Helpers
 end
-
+configure do
+  set :server_cache,{}
+end
 get '/test' do
 	v_cardno = '张三'
   rdrecno = '000'
@@ -38,11 +50,7 @@ get '/mylib' do
 end
 
 get '/getmybooks' do
-  if is_login?
-    erb '<%= get_my_books %>',:layout=>false
-  else
-    erb '<%= get_test_data %>',:layout=>false
-  end
+    erb '<%= long_time_query %>',:layout=>false
 end
 
 get '/' do

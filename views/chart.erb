@@ -15,35 +15,13 @@
   <script class="include" language="javascript" type="text/javascript" src="js/func/classify.js"></script>
   <script class="include" language="javascript" type="text/javascript" src="js/func/rank.js"></script>
   <script type="text/javascript">
-    //$(document).ajaxStop($.unblockUI); 
     $(document).ready(function(){
       My_Book=[];
       Username='';
       v_cardno="<%= v_cardno %>";
       rdrecno="<%= rdrecno %>";
       $.blockUI({message:'<img src="/images/loading.gif"></img><h1>正在加载数据,请稍后...</h1>'});
-      $.ajax({
-        type:'GET',
-        timeout: 9000000,
-        url:'/getmybooks',
-        data:{v_cardno: v_cardno,rdrecno: rdrecno},
-        success:function(data){
-          $.unblockUI;
-          $.growlUI('获取数据完成!','已抓取出你的数据.');
-          data=eval(data)
-          My_Book=data[0];
-          Username=data[1];
-          var len=data[2];
-          Book_index=data[3];
-          Rank_data=data[4];
-          $("#user_and_len").html(Username+"(共借"+len+"本书)");
-          chart(change_to_chart_data(My_Book),Username);
-          classify(change_to_cassify_data(My_Book,Book_index),len);
-          toggle_ul();
-          rank();
-          },
-        error:function(){ajax_error()}
-      });
+      long_time_query();
       $("#feedback_btn").click(function(){ajax_feedback()});
       function ajax_feedback(){
         email=$("#feedback_email").val();
@@ -59,7 +37,6 @@
               $.growlUI('成功','您的反馈已经成功发送');
               $("#feedback_email").val('');
               $("#feedback_msg").val('');
-
             }},
           error:function(){ajax_error()}
           });
@@ -69,16 +46,44 @@
         $.blockUI({message:'<h4 class="alert_error">网络状况有问题请稍后重试...</h4>'});
         setTimeout($.unblockUI, 3000); 
       }
+    function long_time_query(){
+      $.ajax({
+        type:'GET',
+        timeout: 9000000,
+        url:'/getmybooks',
+        data:{v_cardno: v_cardno,rdrecno: rdrecno},
+        success:function(data){
+          if(data=="waiting"){
+            setTimeout(long_time_query,10000);
+          }
+          else{
+          $.unblockUI;
+          $.growlUI('获取数据完成!','已抓取出你的数据.');
+          data=eval(data)
+          My_Book=data[0];
+          Username=data[1];
+          var len=data[2];
+          Book_index=data[3];
+          Rank_data=data[4];
+          $("#user_and_len").html(Username+"(共借"+len+"本书)");
+          chart(change_to_chart_data(My_Book),Username);
+          classify(change_to_cassify_data(My_Book,Book_index),len);
+          toggle_ul();
+          rank();
+        }},
+        error:function(){ajax_error()}
+      });
+      };
     });
   </script>
 </div>
 <div class="parent">
-  <h4 class="alert_info" id="classify_alert">测试</h4>
+  <h4 class="alert_info" id="classify_alert">无法读出数据</h4>
   <article class="module width_full" id="classify">
   </article>
 </div>
 <div class="parent">
-  <h4 class="alert_info" id="rank_alert">测试</h4>
+  <h4 class="alert_info" id="rank_alert">无法读出出数据</h4>
   <article class="module width_full" id="rank">
 		<header><h3 class="tabs_involved">阅读排行榜</h3>
 			<table class="tablesorter" cellspacing="0"> 

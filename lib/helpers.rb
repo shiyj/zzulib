@@ -6,6 +6,8 @@ module Helpers
 #数据读取和分析	
   def get_html url
 		cov = Iconv.new( "UTF-8//IGNORE","GB2312//IGNORE" )
+    #表示已经开始查询
+      settings.server_cache[session["v_cardno"]]={:start_time=>Time.now} if /SrchLog/ =~ url
 		text=open(url).read
 		cov.iconv(text)
 	end
@@ -30,7 +32,7 @@ module Helpers
 
 	def get_lib_history
     #st=session["v_cardno"][1..2]
-		time=DateTime.now
+		time=Time.now
 		endtime=time.to_s[0..9].gsub('-','')
 		url="http://202.197.191.210/cgi-bin/SrchLog?v_cardno=#{session["v_cardno"]}&v_rdrecno=#{session["rdrecno"]}&v_starttime=20080901&v_endtime=#{endtime}&v_maxnum=2000"
 		get_html url
@@ -65,8 +67,11 @@ module Helpers
     if is_login?
       User.first_or_create({:card_no=>session["v_cardno"]},
                          {:name=>username,:books_num=>len})
+		  settings.server_cache[session["v_cardno"]][:data]=[books,username,len,get_classify_hash,get_rank(len)]
+    else
+      
+		  [books,username,len,get_classify_hash,get_rank(len)]
     end
-		[books,username,len,get_classify_hash,get_rank(len)]
 	end
 
 ######数据调用
@@ -81,6 +86,29 @@ module Helpers
     get_my_data text
   end
   
+  def long_time_query
+    if is_login?
+      if(settings.server_cache[session["v_cardno"]])
+        if(settings.server_cache[session["v_cardno"]][:data])
+          settings.server_cache[session["v_cardno"]][:data]
+        else
+          sleep(10)
+          settings.server_cache[session["v_cardno"]][:data]?settings.server_cache[session["v_cardno"]][:data] : "waiting"
+        end
+      else
+        thread = Thread.new do
+          get_my_books
+        end
+        sleep(20)
+        "waiting"
+      end
+    else
+      get_test_data
+    end
+  end
+
+
+
   def get_classify_hash
     books_index=[]
     BooksIndex.all().each do |ind|
