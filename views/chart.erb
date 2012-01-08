@@ -25,7 +25,12 @@
       $("#feedback_btn").click(function(){ajax_feedback()});
       function ajax_feedback(){
         email=$("#feedback_email").val();
+        if(email.match(/^(.+)@(.+)$/)==null){
+          alert("email地址输入错误!");
+          return false;
+          }
         msg=$("#feedback_msg").val();
+        
         $.ajax({
           type:'POST',
           url:'/feedback',
