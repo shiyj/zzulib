@@ -67,9 +67,9 @@ module Helpers
     if is_login?
       #如果是第一次则将数据写入
       user = User.first_or_create({:card_no=>session["v_cardno"]},
-                         {:name=>username,:books_num=>len})
-      user.update(:books_num=>len);
-		  settings.server_cache[session["v_cardno"]][:data]=[books,username,len,get_classify_hash,get_rank(len)]
+                         {:card_no =>session["v_cardno"],:name=>username,:books_num=>len})
+      user.update(:books_num=>len)
+      settings.server_cache[session["v_cardno"]][:data]=[books,username,len,get_classify_hash,get_rank(len)]
     else
 		  [books,username,len,get_classify_hash,get_rank(len)]
     end
