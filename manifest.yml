@@ -1,0 +1,14 @@
+---
+applications:
+- name: zzulib
+  framework: sinatra
+  runtime: ruby19
+  memory: 128M
+  instances: 1
+  url: zzulib.${target-base}
+  path: .
+  services:
+    mysql-6b7f1:
+      vendor: mysql
+      version: '5.1'
+      tier: free

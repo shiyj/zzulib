@@ -8,7 +8,16 @@ require 'time'
 require 'data_mapper'
 require './lib/db'
 
-DataMapper.setup(:default, ENV['DATABASE_URL'] || 'sqlite:db/data.db')
+if ENV['VCAP_SERVICES'] #Cloud foundry
+  require 'json'
+  svcs = JSON.parse ENV['VCAP_SERVICES']
+  mysql = svcs.detect { |k,v| k =~ /^mysql/ }.last.first
+  creds = mysql['credentials']
+  user, pass, host, name = %w(user password host name).map { |key| creds[key] }
+  DataMapper.setup(:default, "mysql://#{user}:#{pass}@#{host}/#{name}")
+else
+  DataMapper.setup(:default, ENV['DATABASE_URL'] || 'sqlite:db/data.db')
+end
 DataMapper.finalize
 DataMapper.auto_upgrade!
 
@@ -32,48 +41,48 @@ before do
 end
 
 helpers do
-	include Helpers
+  include Helpers
 end
 configure do
   set :server_cache,{}
 end
 get '/test' do
-	v_cardno = '张三'
+  v_cardno = '张三'
   rdrecno = '000'
   session.clear
-	erb :chart,:locals=>{ :v_cardno=>v_cardno,:rdrecno=>rdrecno }
+  erb :chart,:locals=>{ :v_cardno=>v_cardno,:rdrecno=>rdrecno }
 end
 get '/mylib' do
   v_cardno = session["v_cardno"]
   rdrecno = session["rdrecno"]
-	erb :chart,:locals=>{ :v_cardno=>v_cardno,:rdrecno=>rdrecno }
+  erb :chart,:locals=>{ :v_cardno=>v_cardno,:rdrecno=>rdrecno }
 end
 
 get '/getmybooks' do
-    erb '<%= long_time_query %>',:layout=>false
+  erb '<%= long_time_query %>',:layout=>false
 end
 
 get '/' do
-	erb :index,:layout=>false
+  erb :index,:layout=>false
 end
 
 get '/login' do
   username = params[:username]
-	password = params[:password]
+  password = params[:password]
   if(username=='admin'&&password=='admin')
     session["is_login"]=false
     "login_success"
   else
-  	login username,password
-  	if(session["is_login"])
-	  	"login_success"
-  	else
-	  	"login_faile"
+    login username,password
+    if(session["is_login"])
+      "login_success"
+    else
+      "login_faile"
     end
-	end
+  end
 end
 get '/loginout' do
-	session.clear
+  session.clear
 end
 
 post '/feedback' do
@@ -94,5 +103,5 @@ get '/kezh' do
   erb '<%= get_classify_hash %>',:layout=>false
 end
 get '/tt' do
-  erb '<%= get_rank %>',:layout=>false
+  erb '<%= "BINGO! From " + request.ip  %>',:layout=>false
 end
